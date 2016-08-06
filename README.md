@@ -14,10 +14,10 @@ go get github.com/jimmy-go/recaptcha
 
 **this package contains a breaking change**
 
-´´´
+```
     Before: func Verify(r *http.Request) bool
     Now: func Verify(response string) error
-´´´
+```
 
 #####Usage:
 ```
