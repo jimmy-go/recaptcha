@@ -1,0 +1,14 @@
+mode: set
+github.com/jimmy-go/recaptcha/recaptcha.go:60.50,61.18 1 1
+github.com/jimmy-go/recaptcha/recaptcha.go:64.2,64.21 1 1
+github.com/jimmy-go/recaptcha/recaptcha.go:67.2,74.16 2 1
+github.com/jimmy-go/recaptcha/recaptcha.go:61.18,63.3 1 1
+github.com/jimmy-go/recaptcha/recaptcha.go:64.21,66.3 1 1
+github.com/jimmy-go/recaptcha/recaptcha.go:83.51,91.16 7 1
+github.com/jimmy-go/recaptcha/recaptcha.go:94.2,98.16 4 1
+github.com/jimmy-go/recaptcha/recaptcha.go:102.2,103.12 2 1
+github.com/jimmy-go/recaptcha/recaptcha.go:91.16,93.3 1 0
+github.com/jimmy-go/recaptcha/recaptcha.go:98.16,100.3 1 0
+github.com/jimmy-go/recaptcha/recaptcha.go:107.33,108.16 1 1
+github.com/jimmy-go/recaptcha/recaptcha.go:111.2,112.57 2 1
+github.com/jimmy-go/recaptcha/recaptcha.go:108.16,110.3 1 0
