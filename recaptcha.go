@@ -36,8 +36,10 @@ import (
 )
 
 var (
-	errInvalidKey    = errors.New("recaptcha: invalid key length")
-	errInvalidSecret = errors.New("recaptcha: invalid secret length")
+	// ErrInvalidKey is reported when Key is empty.
+	ErrInvalidKey = errors.New("recaptcha: invalid key length")
+	// ErrInvalidSecret is reported when Secret is empty.
+	ErrInvalidSecret = errors.New("recaptcha: invalid secret length")
 )
 
 const (
@@ -59,10 +61,10 @@ type Recaptcha struct {
 // New returns a new Recaptcha validator.
 func New(key, secret string) (*Recaptcha, error) {
 	if len(key) < 1 {
-		return nil, errInvalidKey
+		return nil, ErrInvalidKey
 	}
 	if len(secret) < 1 {
-		return nil, errInvalidSecret
+		return nil, ErrInvalidSecret
 	}
 	re := &Recaptcha{
 		Key:    key,

@@ -39,12 +39,12 @@ var (
 		{
 			Key:      "",
 			Secret:   "1",
-			Expected: errInvalidKey,
+			Expected: ErrInvalidKey,
 		},
 		{
 			Key:      "1",
 			Secret:   "",
-			Expected: errInvalidSecret,
+			Expected: ErrInvalidSecret,
 		},
 		{
 			Key:      "1",
