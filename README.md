@@ -31,6 +31,11 @@ go get github.com/jimmy-go/recaptcha
     check errors...
 ```
 
+Run the example to check code is working:
+```
+go run example/main.go -recaptcha-key="YourKey" -recaptcha-secret="YourSecret"
+```
+
 #####License:
 
 The MIT License (MIT)

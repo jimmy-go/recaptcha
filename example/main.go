@@ -1,4 +1,4 @@
-// Package main contains an example of go recapcha.
+// Package main contains an example of go recapcha usage.
 //
 // The MIT License (MIT)
 //
@@ -50,12 +50,12 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, siteTemplate, *key)
 	})
-	// process catpcha
+	// process captcha
 	http.HandleFunc("/submit", func(w http.ResponseWriter, r *http.Request) {
 		captchaResponse := r.FormValue("g-recaptcha-response")
 		err := re.Verify(captchaResponse)
 		if err != nil {
-			w.Write([]byte("valid captcha response: " + err.Error()))
+			w.Write([]byte("invalid captcha response: " + err.Error()))
 			return
 		}
 		w.Write([]byte("captcha response is valid"))
