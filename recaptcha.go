@@ -26,8 +26,11 @@
 package recaptcha
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -36,15 +39,24 @@ import (
 )
 
 var (
+	// verifyURL URL to google validation service. Declared
+	// as variable to allow testing.
+	verifyURL = Endpoint
+
 	// ErrInvalidKey is reported when Key is empty.
 	ErrInvalidKey = errors.New("recaptcha: invalid key length")
+
 	// ErrInvalidSecret is reported when Secret is empty.
 	ErrInvalidSecret = errors.New("recaptcha: invalid secret length")
+
+	// ErrEmptyResponse returned when there is no body in
+	// recaptcha response.
+	ErrEmptyResponse = errors.New("recaptcha: empty response")
 )
 
 const (
-	// verifyURL URL to google validation service.
-	verifyURL = "https://www.google.com/recaptcha/api/siteverify"
+	// Endpoint for verification.
+	Endpoint = "https://www.google.com/recaptcha/api/siteverify"
 )
 
 // Recaptcha struct for Google recaptcha validation.
@@ -95,10 +107,19 @@ func (r *Recaptcha) Verify(response string) error {
 	}
 	defer resp.Body.Close()
 
+	// TODO; validate http status code
+
+	buf := bytes.NewBuffer([]byte{})
+	reader := io.TeeReader(resp.Body, buf)
+
 	var res *Response
-	err = json.NewDecoder(resp.Body).Decode(&res)
+	err = json.NewDecoder(reader).Decode(&res)
 	if err != nil {
-		return err
+		body := strings.TrimSpace(buf.String())
+		if len(body) < 1 {
+			return ErrEmptyResponse
+		}
+		return fmt.Errorf("recaptcha: %s", body)
 	}
 
 	err = joinerrs(res.ErrorCodes)

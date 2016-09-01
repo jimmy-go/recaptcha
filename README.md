@@ -8,8 +8,7 @@
 
 #####Install:
 ```
-# comming soon in gopkg.in
-go get github.com/jimmy-go/recaptcha
+go get gopkg.in/jimmy-go/recaptcha.v0
 ```
 
 *this package contains a breaking change*
@@ -31,9 +30,14 @@ go get github.com/jimmy-go/recaptcha
     check errors...
 ```
 
-Run the example to check code is working:
+The tests can't verify recaptcha solution so for real
+world usage before using this package run the example:
 ```
+# Configure your recaptcha to allow localhost.
+
+# Run the example.
 go run example/main.go -recaptcha-key="YourKey" -recaptcha-secret="YourSecret"
+2016/09/01 13:43:56 Starting server on http://localhost:8100. Check example by opening this url in browser.
 ```
 
 #####License:
