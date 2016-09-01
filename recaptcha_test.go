@@ -25,75 +25,192 @@
 // SOFTWARE.
 package recaptcha
 
-import "testing"
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
 
 // T struct for tests.
 type T struct {
-	Key      string
-	Secret   string
-	Expected error
+	Purpose        string
+	Input          Credentials
+	Expected       error
+	ExpectedVerify error
 }
 
-var (
-	table = []T{
-		{
-			Key:      "",
-			Secret:   "1",
-			Expected: errInvalidKey,
-		},
-		{
-			Key:      "1",
-			Secret:   "",
-			Expected: errInvalidSecret,
-		},
-		{
-			Key:      "1",
-			Secret:   "1",
-			Expected: nil,
-		},
-	}
-)
+// Credentials for input data.
+type Credentials struct {
+	Key      string
+	Secret   string
+	Endpoint string
+	Solution string
+	Body     string
+}
 
 func TestTable(t *testing.T) {
-	for _, x := range table {
-		_, err := New(x.Key, x.Secret)
-		if err != x.Expected {
+	const FailHost = "http://127.0.0.1"
+	table := []T{
+		{
+			Input: Credentials{
+				Key:      "",
+				Secret:   "1",
+				Endpoint: Endpoint,
+				Solution: "123",
+			},
+			Expected:       ErrInvalidKey,
+			ExpectedVerify: ErrInvalidKey,
+		},
+		{
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "",
+				Endpoint: Endpoint,
+				Solution: "123",
+			},
+			Expected:       ErrInvalidSecret,
+			ExpectedVerify: ErrInvalidSecret,
+		},
+		{
+			Purpose: "Void credentials",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Endpoint: Endpoint,
+				Solution: "123",
+			},
+			Expected:       nil,
+			ExpectedVerify: errors.New("recaptcha: response errors: invalid-input-response, invalid-input-secret"),
+		},
+		{
+			Purpose: "Fail endpoint",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Endpoint: FailHost,
+				Solution: "123",
+			},
+			Expected:       nil,
+			ExpectedVerify: errors.New("Post http://127.0.0.1: dial tcp 127.0.0.1:80: getsockopt: connection refused"),
+		},
+		{
+			Purpose: "Custom endpoint",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Endpoint: "http://1.2.3.4/",
+				Solution: "123",
+				Body:     "response body html",
+			},
+			Expected:       nil,
+			ExpectedVerify: errors.New("recaptcha: response body html"),
+		},
+		{
+			Purpose: "Empty body",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Endpoint: "http://1.2.3.4/",
+				Solution: "123",
+				Body:     "",
+			},
+			Expected:       nil,
+			ExpectedVerify: ErrEmptyResponse,
+		},
+		{
+			Purpose: "Response with errors",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Solution: "123",
+				Body:     `{"error-codes":["one","two"]}`,
+			},
+			Expected:       nil,
+			ExpectedVerify: errors.New("recaptcha: response errors: one, two"),
+		},
+		{
+			Purpose: "Response without errors",
+			Input: Credentials{
+				Key:      "1",
+				Secret:   "1",
+				Solution: "123",
+				Body:     `{"error-codes":[]}`,
+			},
+			Expected:       nil,
+			ExpectedVerify: nil,
+		},
+	}
+	for i := range table {
+		x := table[i]
+
+		verifyURL = x.Input.Endpoint
+
+		re, err := New(x.Input.Key, x.Input.Secret)
+		if fmt.Sprintf("%s", err) != fmt.Sprintf("%s", x.Expected) {
 			t.Fail()
-			t.Logf("TestTable : expected [%s] actual [%s]", x.Expected, err)
+			t.Logf("new : purpose [%v] expected [%s] actual [%s]", x.Purpose, x.Expected, err)
+			continue
+		}
+		// prevent panic
+		if re == nil {
+			continue
+		}
+
+		// Make a mock server for custom endpoints test.
+		if verifyURL != Endpoint && verifyURL != FailHost {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprintln(w, x.Input.Body)
+			}))
+			defer ts.Close()
+			verifyURL = ts.URL
+		}
+
+		err = re.Verify(x.Input.Solution)
+		if fmt.Sprintf("%s", err) != fmt.Sprintf("%s", x.ExpectedVerify) {
+			t.Fail()
+			t.Logf("verify : purpose [%v] expected [%s] actual [%s]", x.Purpose, x.ExpectedVerify, err)
+			continue
 		}
 	}
 }
 
 // TestRecaptcha test.
-// FIXME; You need to start example/main.go with your
+//
+// You need to start example/main.go with your
 // credentials in order to validate is working.
 func TestRecaptcha(t *testing.T) {
+	verifyURL = Endpoint
+
 	re, err := New("invalidKey", "invalidSecret")
 	if err != nil {
 		t.Fail()
-		t.Logf("TestRecaptcha : new : err [%s]", err)
+		t.Logf("new : err [%s]", err)
 	}
 	err = re.Verify("testresponse")
 	if err == nil {
 		t.Fail()
-		t.Logf("TestRecaptcha : new : err [%s]", err)
+		t.Logf("new : err [%s]", err)
 	}
 	expected := "recaptcha: response errors: invalid-input-response, invalid-input-secret"
 	if err.Error() != expected {
 		t.Fail()
-		t.Logf("TestRecaptcha : new : err [%s]", err)
+		t.Logf("new : err [%s]", err)
 	}
 }
 
 func TestRecaptchaFail(t *testing.T) {
+	verifyURL = Endpoint
+
 	re, err := New("123", "456")
 	if err != nil {
 		t.Fail()
-		t.Logf("TestRecaptcha : new : err [%s]", err)
+		t.Logf("new : err [%s]", err)
 	}
 	err = re.Verify("testresponse")
 	if err == nil {
 		t.Fail()
-		t.Logf("TestRecaptcha : new : err [%s]", err)
+		t.Logf("new : err [%s]", err)
 	}
 }
