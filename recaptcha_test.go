@@ -51,7 +51,7 @@ type Credentials struct {
 }
 
 func TestTable(t *testing.T) {
-	const FailHost = "http://127.0.0.1:8080"
+	const FailHost = "xxy"
 	table := []T{
 		{
 			Input: Credentials{
@@ -93,7 +93,7 @@ func TestTable(t *testing.T) {
 				Solution: "123",
 			},
 			Expected:       nil,
-			ExpectedVerify: errors.New("Post http://127.0.0.1:8080: dial tcp 127.0.0.1:8080: getsockopt: connection refused"),
+			ExpectedVerify: errors.New(`Post xxy: unsupported protocol scheme ""`),
 		},
 		{
 			Purpose: "Custom endpoint",
